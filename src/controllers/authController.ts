@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../prisma';
 import config from '../config';
 import { successResponse, errorResponse } from '../utils/apiResponse';
+import { logger } from '../utils/logger';
 
 const SALT_ROUNDS = 10;
 
@@ -21,7 +22,8 @@ export async function register(req: Request, res: Response) {
 
     return successResponse(res, req.traceId ?? 'unknown', { userId: user.id }, 201);
   } catch (error) {
-    // Handle duplicate email, etc.
+    // Log error for debugging (duplicate email, DB unreachable, etc.)
+    logger.error({ err: error }, 'User registration failed');
     return errorResponse(res, req.traceId ?? 'unknown', 'REGISTER_FAILED', 'Unable to register user', 400);
   }
 }
