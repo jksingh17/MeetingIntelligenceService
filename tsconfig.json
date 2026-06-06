@@ -12,8 +12,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "noImplicitAny": true,
-    "ignoreDeprecations": "6.0",
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

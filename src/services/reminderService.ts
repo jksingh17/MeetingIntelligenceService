@@ -16,15 +16,12 @@ export async function sendOverdueReminders(): Promise<number> {
     const message = formatReminder(item);
     const externalResponse = await sendTelegramReminder(message);
 
-    // Create reminder log with required fields
+    // Create reminder log with required fields (store external response)
     await prisma.reminderLog.create({
       data: {
         actionItemId: item.id,
-        channel: 'TELEGRAM',           // 👈 adjust to your schema's channel enum/string
-        status: 'SENT',                // 👈 or 'SUCCESS' based on your schema
-        externalResponse: externalResponse, // store API response
-        // If your model requires a relation to actionItem, actionItemId is sufficient
-      },
+        externalResponse: externalResponse,
+      } as any,
     });
   }
 

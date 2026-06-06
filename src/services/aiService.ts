@@ -33,7 +33,7 @@ interface TranscriptItem {
 function parseTranscript(meeting: MeetingInput): TranscriptItem[] {
   if (!meeting.transcript) return [];
   try {
-    const parsed = JSON.parse(meeting.transcript as string);
+    const parsed = JSON.parse(meeting.transcript);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -43,7 +43,7 @@ function parseTranscript(meeting: MeetingInput): TranscriptItem[] {
 function parseParticipants(meeting: MeetingInput): string[] {
   if (!meeting.participants) return [];
   try {
-    const parsed = JSON.parse(meeting.participants as string);
+    const parsed = JSON.parse(meeting.participants);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -77,7 +77,7 @@ function isValidTimestamp(timestamp: string, validSet: Set<string>): boolean {
   return validSet.has(timestamp);
 }
 
-function validateAnalysis(result: AnalysisResult, meeting: MeetingInput): void {
+export function validateAnalysis(result: AnalysisResult, meeting: MeetingInput): void {
   const transcript = parseTranscript(meeting);
   const validTimestamps = new Set(transcript.map((item) => item.timestamp));
 
