@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-      DATABASE_URL: "postgresql://meeting_nhum_user:l98isD534SVpu8Ehw69AfMKwy6tiQLJt@dpg-d8hvcqjtqb8s73airbo0-a/meeting_nhum"
-      JWT_SECRET: "supersecretjwtkey"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       OPENAI_API_KEY: "sk-dummy-key-for-testing"
-      TELEGRAM_BOT_TOKEN: "sk-dummy-key-for-testing"
-      TELEGRAM_CHAT_ID: "sk-dummy-key-for-testing"
+      TELEGRAM_BOT_TOKEN: "dummy-telegram-token"
+      TELEGRAM_CHAT_ID: "dummy-chat-id"
       PORT: "4000"
       NODE_ENV: "test"
     steps:
@@ -31,9 +31,6 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
-
-      - name: Push database schema
-        run: npx prisma db push
 
       - name: Run type check
         run: npm run build
