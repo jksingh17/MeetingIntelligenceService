@@ -7,46 +7,36 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
-    # Use Node.js 22 (since Node 20 is deprecated)
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      DATABASE_URL: "file:./dev.db"
+      JWT_SECRET: "supersecretjwtkey"
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      PORT: "4000"
+      NODE_ENV: "test"
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 22
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: '24'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Generate Prisma Client
+      - name: Generate Prisma client
         run: npx prisma generate
 
-      # 🔧 Create a fresh test database (SQLite)
-      - name: Set up test database
-        run: |
-          touch test.db
-          echo "DATABASE_URL=file:./test.db" >> $GITHUB_ENV
+      - name: Push database schema
+        run: npx prisma db push
 
-      # 🔧 Run migrations on the fresh database
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: file:./test.db
-
-      # 🔧 Optionally seed if needed (uncomment if you have seed script)
-      # - name: Seed database
-      #   run: npx prisma db seed
-      #   env:
-      #     DATABASE_URL: file:./test.db
+      - name: Run type check
+        run: npm run build
 
       - name: Run tests
         run: npm test
-        env:
-          DATABASE_URL: file:./test.db
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-key' }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy-key' }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || 'dummy-token' }}
