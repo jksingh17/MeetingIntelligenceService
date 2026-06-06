@@ -13,9 +13,9 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
       DATABASE_URL: "file:./dev.db"
       JWT_SECRET: "supersecretjwtkey"
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      OPENAI_API_KEY: "sk-dummy-key-for-testing"
+      TELEGRAM_BOT_TOKEN: "sk-dummy-key-for-testing"
+      TELEGRAM_CHAT_ID: "sk-dummy-key-for-testing"
       PORT: "4000"
       NODE_ENV: "test"
     steps:
