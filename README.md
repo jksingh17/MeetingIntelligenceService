@@ -60,7 +60,7 @@ Body:
 {
   "email": "user@example.com",
   "password": "securePassword123",
-  "telegramId": "123456789"
+  "name": "asdf"
 }
 ```
 
