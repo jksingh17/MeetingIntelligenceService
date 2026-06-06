@@ -27,7 +27,10 @@ const swaggerDefinition = {
     version: '0.1.0',
     description: 'Backend API for meeting analysis, action items, and reminders.',
   },
-  servers: [{ url: 'http://localhost:4000' }],
+  servers: [
+  { url: 'https://meetingintelligenceservice.onrender.com', description: 'Production' },
+  { url: 'http://localhost:4000', description: 'Local Development' },
+],
   components: {
     securitySchemes: {
       bearerAuth: {
