@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      DATABASE_URL: "secrets.DATABASE_URL"
+      JWT_SECRET: "secrets.JWT_SECRET"
       OPENAI_API_KEY: "sk-dummy-key-for-testing"
       TELEGRAM_BOT_TOKEN: "dummy-telegram-token"
       TELEGRAM_CHAT_ID: "dummy-chat-id"
