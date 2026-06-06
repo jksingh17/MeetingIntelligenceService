@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  telegramId   String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  meetings     Meeting[] @relation("MeetingOwner")
+}
+
+model Meeting {
+  id             String       @id @default(cuid())
+  title          String
+  meetingDate    DateTime
+  participants   Json
+  transcript     Json
+  aiSummary      Json?
+  aiActionItems  Json?
+  aiDecisions    Json?
+  aiFollowUps    Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  ownerId        String
+  owner          User         @relation(fields: [ownerId], references: [id], name: "MeetingOwner")
+  actionItems    ActionItem[]
+}
+
+model ActionItem {
+  id           String       @id @default(cuid())
+  task         String
+  assignee     String
+  status       ActionStatus @default(PENDING)
+  dueDate      DateTime
+  citations    Json
+  meeting      Meeting      @relation(fields: [meetingId], references: [id])
+  meetingId    String
+  completedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  reminderLogs ReminderLog[]
+}
+
+model ReminderLog {
+  id               String      @id @default(cuid())
+  actionItem       ActionItem  @relation(fields: [actionItemId], references: [id])
+  actionItemId     String
+  sentAt           DateTime    @default(now())
+  externalResponse Json?
+}
