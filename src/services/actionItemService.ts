@@ -8,14 +8,15 @@ interface CreateActionItemPayload {
   citations: string[];
 }
 
-export async function createActionItem(payload: CreateActionItemPayload) {
+export async function createActionItem(userId: string, payload: CreateActionItemPayload) {
   return prisma.actionItem.create({
     data: {
       task: payload.task,
       assignee: payload.assignee,
       meetingId: payload.meetingId,
       dueDate: new Date(payload.dueDate),
-      citations: payload.citations,
+      citations: JSON.stringify(payload.citations),
+      createdBy: userId,  // ✅ required field from your schema
     },
   });
 }
@@ -56,13 +57,19 @@ export async function listActionItems(filters: {
     prisma.actionItem.count({ where }),
   ]);
 
-  return { items, total, page, limit };
+  // Parse citations back to array for each action item
+  const parsedItems = items.map((item: any) => ({
+    ...item,
+    citations: item.citations ? JSON.parse(item.citations) : [],
+  }));
+
+  return { items: parsedItems, total, page, limit };
 }
 
 export async function getOverdueActionItems() {
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  return prisma.actionItem.findMany({
+  const items = await prisma.actionItem.findMany({
     where: {
       status: { not: 'COMPLETED' },
       dueDate: { lt: new Date() },
@@ -74,4 +81,10 @@ export async function getOverdueActionItems() {
     },
     include: { meeting: true },
   });
+
+  // Parse citations for each overdue item
+  return items.map((item: any) => ({
+    ...item,
+    citations: item.citations ? JSON.parse(item.citations) : [],
+  }));
 }

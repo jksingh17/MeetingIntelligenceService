@@ -1,7 +1,21 @@
 import axios from 'axios';
 import config from '../config';
 import { logger } from '../utils/logger';
-import { Meeting } from '@prisma/client';
+
+export interface MeetingInput {
+  id: string;
+  title: string;
+  participants: string;
+  transcript: string;
+  meetingDate: Date;
+  createdBy: string;
+  aiSummary?: string | null;
+  aiActionItems?: string | null;
+  aiDecisions?: string | null;
+  aiFollowUps?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface AnalysisResult {
   summary: Array<{ text: string; citations: string[] }>;
@@ -16,13 +30,36 @@ interface TranscriptItem {
   text: string;
 }
 
-function buildPrompt(meeting: Meeting) {
-  const transcript = meeting.transcript as TranscriptItem[];
+function parseTranscript(meeting: MeetingInput): TranscriptItem[] {
+  if (!meeting.transcript) return [];
+  try {
+    const parsed = JSON.parse(meeting.transcript as string);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseParticipants(meeting: MeetingInput): string[] {
+  if (!meeting.participants) return [];
+  try {
+    const parsed = JSON.parse(meeting.participants as string);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildPrompt(meeting: MeetingInput): string {
+  const transcript = parseTranscript(meeting);
   const transcriptJson = JSON.stringify(transcript, null, 2);
+  const participantsArray = parseParticipants(meeting);
+  const participantsJson = JSON.stringify(participantsArray);
+
   return `You are a strict meeting analyst. ONLY use information explicitly in the transcript.
 Do NOT invent any attendees, tasks, decisions, or outcomes.
 For each insight, provide citations as array of timestamps from the transcript.
-Participants: ${JSON.stringify(meeting.participants)}
+Participants: ${participantsJson}
 Transcript: ${transcriptJson}
 
 Return JSON exactly in this shape:
@@ -36,20 +73,20 @@ Return JSON exactly in this shape:
 Do not add any explanatory text or markdown. Provide only valid JSON.`;
 }
 
-function isValidTimestamp(timestamp: string, validSet: Set<string>) {
+function isValidTimestamp(timestamp: string, validSet: Set<string>): boolean {
   return validSet.has(timestamp);
 }
 
-function validateAnalysis(result: AnalysisResult, meeting: Meeting) {
-  const transcript = meeting.transcript as TranscriptItem[];
+function validateAnalysis(result: AnalysisResult, meeting: MeetingInput): void {
+  const transcript = parseTranscript(meeting);
   const validTimestamps = new Set(transcript.map((item) => item.timestamp));
-  const participantNames = new Set<string>([]);
-  if (Array.isArray(meeting.participants)) {
-    (meeting.participants as string[]).forEach((value) => participantNames.add(value));
-  }
+
+  const participantNames = new Set<string>();
+  const participantsArray = parseParticipants(meeting);
+  participantsArray.forEach((name) => participantNames.add(name));
   transcript.forEach((item) => participantNames.add(item.speaker));
 
-  const validateCitationArray = (citations: string[]) =>
+  const validateCitationArray = (citations: string[]): boolean =>
     Array.isArray(citations) && citations.length > 0 && citations.every((ts) => isValidTimestamp(ts, validTimestamps));
 
   for (const entry of result.summary) {
@@ -63,7 +100,9 @@ function validateAnalysis(result: AnalysisResult, meeting: Meeting) {
       throw new Error('Invalid action item structure or citations');
     }
     const normalizedAssignee = item.assignee.trim();
-    const found = Array.from(participantNames).some((name) => name.toLowerCase() === normalizedAssignee.toLowerCase());
+    const found = Array.from(participantNames).some(
+      (name) => name.toLowerCase() === normalizedAssignee.toLowerCase()
+    );
     if (!found) {
       throw new Error(`Action item assignee appears hallucinated: ${item.assignee}`);
     }
@@ -82,9 +121,7 @@ function validateAnalysis(result: AnalysisResult, meeting: Meeting) {
   }
 }
 
-export { validateAnalysis };
-
-export async function analyzeMeetingTranscript(meeting: Meeting) {
+export async function analyzeMeetingTranscript(meeting: MeetingInput): Promise<AnalysisResult> {
   const prompt = buildPrompt(meeting);
 
   const requestBody = {

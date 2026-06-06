@@ -8,19 +8,20 @@ import { successResponse, errorResponse } from '../utils/apiResponse';
 const SALT_ROUNDS = 10;
 
 export async function register(req: Request, res: Response) {
-  const { email, password, telegramId } = req.body;
+  const { email, password, name } = req.body;  // ✅ added name
   try {
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
-        telegramId,
+        name,  // ✅ required field
       },
     });
 
     return successResponse(res, req.traceId ?? 'unknown', { userId: user.id }, 201);
   } catch (error) {
+    // Handle duplicate email, etc.
     return errorResponse(res, req.traceId ?? 'unknown', 'REGISTER_FAILED', 'Unable to register user', 400);
   }
 }
