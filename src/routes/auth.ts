@@ -23,7 +23,7 @@ const router = Router();
  *                 type: string
  *               password:
  *                 type: string
- *               telegramId:
+ *               name:
  *                 type: string
  *     responses:
  *       201:
