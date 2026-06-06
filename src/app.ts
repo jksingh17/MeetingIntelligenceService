@@ -57,7 +57,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/action-items', actionItemRoutes);
 app.use('/', healthRoutes);
-
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Meeting Intelligence Service API',
+    version: '0.1.0',
+    docs: 'https://meetingintelligenceservice.onrender.com/api-docs',
+    health: 'https://meetingintelligenceservice.onrender.com/health',
+  });
+});
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
