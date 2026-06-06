@@ -73,7 +73,7 @@ export async function getOverdueActionItems() {
     where: {
       status: { not: 'COMPLETED' },
       dueDate: { lt: new Date() },
-      reminderLogs: {
+      reminders: {
         none: {
           sentAt: { gte: twentyFourHoursAgo },
         },
